@@ -1,0 +1,49 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field %}
+
+{% block title %}Edit {{ acct.name }} | {{ app_name }}{% endblock %}
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<h1 class="page__title">Edit Account</h1>
+<p class="page__subtitle">Update details for {{ acct.name }}.</p>
+
+<section class="panel">
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.name) }}
+    <div class="field-row">
+      {{ field(form.account_type) }}
+      {{ field(form.last4, maxlength="4", inputmode="numeric") }}
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field__label" for="color">Card Color Tag</label>
+        <select name="color" id="color" class="field__input">
+          <option value="#6366f1"{% if acct.color == '#6366f1' %} selected{% endif %}>Indigo</option>
+          <option value="#10b981"{% if acct.color == '#10b981' %} selected{% endif %}>Emerald Green</option>
+          <option value="#f59e0b"{% if acct.color == '#f59e0b' %} selected{% endif %}>Amber Orange</option>
+          <option value="#f43f5e"{% if acct.color == '#f43f5e' %} selected{% endif %}>Rose Red</option>
+          <option value="#06b6d4"{% if acct.color == '#06b6d4' %} selected{% endif %}>Cyan Blue</option>
+          <option value="#8b5cf6"{% if acct.color == '#8b5cf6' %} selected{% endif %}>Purple</option>
+        </select>
+      </div>
+      {{ field(form.balance_hint, type="number", step="0.01") }}
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="button button--inline">Save changes</button>
+      <a class="button button--inline button--outline" href="{{ url_for('bank_accounts.index') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <h2 class="panel__title">Delete this account</h2>
+  <p class="muted">Deleting this account won't delete any past transactions; they'll simply show as unassigned.</p>
+  <form method="post" action="{{ url_for('bank_accounts.delete', account_id=acct.id) }}" data-confirm="Delete '{{ acct.name }}'? This action cannot be undone.">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="button button--inline button--danger">Delete account</button>
+  </form>
+</section>
+{% endblock %}

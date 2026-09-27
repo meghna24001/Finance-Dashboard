@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | {{ app_name }}{% endblock %}
+
+{% block body %}
+<main class="offline">
+  <img class="offline__icon" src="{{ url_for('static', filename='icons/icon-192.png') }}" alt="" width="72" height="72">
+  <p class="muted">Error {{ status }}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  <div class="actions">
+    <a class="button button--inline" href="/">Go to Home</a>
+  </div>
+</main>
+{% endblock %}

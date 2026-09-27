@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="FinSight wallet and chart icon">
+  <rect width="512" height="512" rx="112" fill="#111827"/>
+  <circle cx="256" cy="256" r="230" fill="none" stroke="#273449" stroke-width="3"/>
+  <path d="M120 195c0-24 20-44 44-44h184c24 0 44 20 44 44v28H120z" fill="#10b981"/>
+  <path d="M120 195h272v43H120z" fill="#0ea371"/>
+  <rect x="148" y="166" width="34" height="27" rx="8" fill="#fbbf24"/>
+  <circle cx="360" cy="161" r="53" fill="#f59e0b" stroke="#fbbf24" stroke-width="8"/>
+  <circle cx="360" cy="161" r="37" fill="none" stroke="#c77905" stroke-width="3"/>
+  <text x="360" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="700" fill="#fff">₹</text>
+  <rect x="88" y="220" width="336" height="190" rx="30" fill="#6366f1" stroke="#fff" stroke-width="2"/>
+  <path d="M88 250c0-17 13-30 30-30h276c17 0 30 13 30 30v30H88z" fill="#5149e8"/>
+  <rect x="326" y="289" width="105" height="67" rx="20" fill="#312e81" stroke="#fff" stroke-width="2"/>
+  <circle cx="368" cy="322" r="14" fill="#f59e0b" stroke="#fff" stroke-width="7"/>
+</svg>

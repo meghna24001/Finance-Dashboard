@@ -1,0 +1,80 @@
+{% extends "app_base.html" %}
+
+{% block title %}Import statement | {{ app_name }}{% endblock %}
+{% block page_class %} page--wide{% endblock %}
+
+{% block content %}
+<h1 class="page__title">Import bank statement</h1>
+
+{% if not rows %}
+<section class="panel">
+  <h2 class="panel__title">Choose a statement</h2>
+  <p class="muted import-help">Files are parsed on this device and are not sent to a paid service. Supported formats: text-based PDF, XLS, and XLSX. Common international date, details, debit/credit, amount, and account-number headings are detected; review the preview before saving. Scanned image-only PDFs are not supported.</p>
+  <form method="post" enctype="multipart/form-data" class="import-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="field">
+      <span class="field__label">Statement file</span>
+      <input type="file" name="statement" accept=".pdf,.xls,.xlsx,application/pdf" required>
+    </label>
+    <label class="field">
+      <span class="field__label">Password (if protected, optional)</span>
+      <input type="password" name="password" autocomplete="off">
+    </label>
+    <div class="actions">
+      <button type="submit" class="button button--inline">Preview statement</button>
+      <a class="button button--inline" href="{{ url_for('transactions.index') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+{% else %}
+<section class="panel">
+  <h2 class="panel__title">Review {{ rows|length }} row(s)</h2>
+  <p class="muted import-help">Uncheck rows you do not want to save. Duplicate rows are shown for review and will be skipped safely.</p>
+  {% if rows[0].account_number %}
+  <p class="muted import-help">Statement account number: <strong>{{ rows[0].account_number }}</strong></p>
+  {% endif %}
+  <form method="post" action="{{ url_for('transactions.commit_import', batch_id=batch.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="table-wrap">
+      <table class="table import-table">
+        <thead><tr><th><input type="checkbox" data-import-select-all checked aria-label="Select all rows"></th><th>Date</th><th>Type</th><th>Details</th><th>Amount</th><th>Category</th><th>Account</th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+          <tr{% if row.duplicate %} class="import-row--duplicate"{% endif %}>
+            <td><input type="checkbox" name="selected" value="{{ loop.index0 }}" data-import-row{% if not row.duplicate %} checked{% endif %}></td>
+            <td>{{ row.date }}</td>
+            <td>{{ row.type|capitalize }}</td>
+            <td title="{{ row.description }}">{{ row.description or '—' }}{% if row.duplicate %}<span class="import-duplicate">Duplicate</span>{% endif %}</td>
+            <td>{{ row.amount }}</td>
+            <td>
+              <select name="category_{{ loop.index0 }}">
+                <option value="">None (edit later)</option>
+                {% for category in categories if category.type == row.type %}
+                <option value="{{ category.id }}"{% if category.name|lower == row.category_hint|lower %} selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="account_{{ loop.index0 }}">
+                <option value="0">None / Default</option>
+                {% for account in accounts %}<option value="{{ account.id }}">{{ account.name }}</option>{% endfor %}
+              </select>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button type="submit" class="button button--inline">Save selected transactions</button>
+      <a class="button button--inline" href="{{ url_for('transactions.import_statement') }}">Start over</a>
+    </div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/statement-import.js') }}"></script>
+{% endblock %}

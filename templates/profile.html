@@ -1,0 +1,55 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field, password_field %}
+
+{% block title %}Profile | {{ app_name }}{% endblock %}
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<div class="profile-head">
+  <span class="avatar avatar--large" aria-hidden="true">{{ current_user.initials }}</span>
+  <div>
+    <h1 class="page__title">{{ current_user.name }}</h1>
+    <p class="muted">{{ current_user.email }}</p>
+  </div>
+</div>
+
+<section class="panel">
+  <h2 class="panel__title">Account</h2>
+  <dl class="details">
+    <div><dt>Email</dt><dd>{{ current_user.email }}</dd></div>
+    <div><dt>Currency</dt><dd>{{ current_user.currency }} <span class="muted">(for example {{ sample }})</span></dd></div>
+    <div><dt>Member since</dt><dd>{{ current_user.created_at.strftime("%B %Y") }}</dd></div>
+  </dl>
+</section>
+
+<section class="panel">
+  <h2 class="panel__title">Edit profile</h2>
+  <form method="post" action="{{ url_for('account.update_details') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ field(details_form.name, autocomplete="name") }}
+    {{ field(details_form.country, autocomplete="country") }}
+    <p class="hint">Your country sets the currency. Changing it changes how amounts are shown; existing amounts are not converted.</p>
+    <button type="submit" class="button button--inline">Save changes</button>
+  </form>
+</section>
+
+<section class="panel" data-install-panel>
+  <h2 class="panel__title">Install the app</h2>
+  <p>Open {{ app_name }} from your home screen or desktop, full screen and with its own icon.</p>
+  <p class="muted" data-install-default>In your browser's menu, look for “Install app” or “Add to Home Screen”.</p>
+  <button type="button" class="button button--inline" data-install-button hidden>Install app</button>
+  <p data-install-ios hidden>On iPhone or iPad, tap the Share button, then “Add to Home Screen”.</p>
+  <p data-installed hidden><strong>You're using the installed app.</strong></p>
+</section>
+
+<section class="panel" id="change-password">
+  <h2 class="panel__title">Change password</h2>
+  <form method="post" action="{{ url_for('account.change_password') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ password_field(password_form.current_password, autocomplete="current-password") }}
+    {{ password_field(password_form.new_password, autocomplete="new-password") }}
+    {{ password_field(password_form.confirm_new_password, autocomplete="new-password") }}
+    <button type="submit" class="button button--inline">Update password</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field %}
+
+{% block title %}Edit budget | {{ app_name }}{% endblock %}
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<h1 class="page__title">{{ budget.category.name }} budget</h1>
+
+<section class="panel">
+  <form method="post" action="{{ url_for('budgets.edit', budget_id=budget.id, month=month_key) }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ field(form.amount, label_text="Monthly limit (" ~ current_user.currency ~ ")", type="number", step="0.01", min="0.01", inputmode="decimal") }}
+    <p class="hint">This limit applies to every month, including past ones.</p>
+    <div class="actions">
+      <button type="submit" class="button button--inline">Save limit</button>
+      <a class="button button--inline button--outline" href="{{ url_for('budgets.index', month=month_key) }}">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <h2 class="panel__title">Remove this budget</h2>
+  <p class="muted">Your {{ budget.category.name }} transactions stay exactly as they are.</p>
+  <form method="post" action="{{ url_for('budgets.delete', budget_id=budget.id, month=month_key) }}" data-confirm="Remove the budget for {{ budget.category.name }}?">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="button button--inline button--danger">Remove budget</button>
+  </form>
+</section>
+{% endblock %}

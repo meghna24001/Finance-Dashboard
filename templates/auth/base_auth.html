@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block body %}
+<main class="auth">
+  <aside class="auth__brand">
+    <div class="auth__brand-inner">
+      <div class="auth__logo-wrap">
+        <span class="auth__logo-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M3.5 8.5h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-14a2 2 0 0 1-2-2v-8z"
+                  stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M3.5 10.5V7a2 2 0 0 1 2-2h9.5l3 3.5"
+                  stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M16 14h3" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="15.5" cy="14" r="1.2" fill="#fbbf24"/>
+          </svg>
+        </span>
+        <span class="auth__name">{{ app_name }}</span>
+      </div>
+
+      <h1 class="auth__tagline">Smart insights into your wealth.</h1>
+      <p class="auth__about">Track transactions across UPI, cards and cash, manage multiple bank accounts, automate SIPs, and scan receipts effortlessly.</p>
+
+      <div class="auth__features">
+        <div class="auth__feature">
+          <span class="auth__feature-icon">⚡</span>
+          <span>Instant UPI, card, and cash tracking</span>
+        </div>
+        <div class="auth__feature">
+          <span class="auth__feature-icon">🏦</span>
+          <span>Multi-account bank & wallet balance management</span>
+        </div>
+        <div class="auth__feature">
+          <span class="auth__feature-icon">📈</span>
+          <span>Automated recurring SIPs & scheduled investments</span>
+        </div>
+        <div class="auth__feature">
+          <span class="auth__feature-icon">🧾</span>
+          <span>Smart receipt scanning with auto-fill</span>
+        </div>
+        <div class="auth__feature">
+          <span class="auth__feature-icon">🔔</span>
+          <span>Proactive budget alerts & milestone streaks</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="auth__panel">
+    <div class="auth__box">
+      <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
+        <button type="button" class="button--icon" data-theme-toggle aria-label="Toggle theme" title="Switch theme">
+          <span class="theme-toggle__icon" aria-hidden="true">🖥️</span>
+        </button>
+      </div>
+
+      {% include "_flashes.html" %}
+      {% block auth_content %}{% endblock %}
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/forms.js') }}"></script>
+{% endblock %}

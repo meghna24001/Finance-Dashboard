@@ -1,0 +1,24 @@
+{# A labelled input with its error messages underneath. #}
+{% macro field(f, label_text=None) %}
+<div class="field{% if f.errors %} field--error{% endif %}">
+  {{ f.label(text=label_text, class="field__label") }}
+  {{ f(class="field__input", **kwargs) }}
+  {% for message in f.errors %}
+    <p class="field__error">{{ message }}</p>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{# Same, with a Show/Hide button for passwords. #}
+{% macro password_field(f) %}
+<div class="field{% if f.errors %} field--error{% endif %}">
+  {{ f.label(class="field__label") }}
+  <div class="field__password">
+    {{ f(class="field__input", **kwargs) }}
+    <button type="button" class="field__toggle" data-toggle-password="{{ f.id }}" aria-controls="{{ f.id }}">Show</button>
+  </div>
+  {% for message in f.errors %}
+    <p class="field__error">{{ message }}</p>
+  {% endfor %}
+</div>
+{% endmacro %}

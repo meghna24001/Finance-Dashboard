@@ -1,0 +1,23 @@
+{% extends "auth/base_auth.html" %}
+{% from "_macros.html" import field, password_field %}
+
+{% block title %}Create Account | {{ app_name }}{% endblock %}
+
+{% block auth_content %}
+<h1 class="auth__title">Create your account</h1>
+<p class="auth__desc">Get started with {{ app_name }} and take full control of your personal finances.</p>
+
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  {{ field(form.name, autocomplete="name", placeholder="Your full name") }}
+  {{ field(form.email, type="email", autocomplete="email", inputmode="email", placeholder="you@example.com") }}
+  {{ field(form.country, autocomplete="country") }}
+  <p class="hint">Your country sets the default currency for your records.</p>
+  {{ password_field(form.password, autocomplete="new-password", placeholder="At least 8 characters") }}
+  {{ password_field(form.confirm_password, autocomplete="new-password", placeholder="Repeat your password") }}
+
+  {{ form.submit(class="button", value="Get Started Free") }}
+</form>
+
+<p class="auth__switch">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+{% endblock %}

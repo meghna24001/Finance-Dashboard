@@ -1,0 +1,42 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field %}
+
+{% block title %}Categories | {{ app_name }}{% endblock %}
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<h1 class="page__title">Categories</h1>
+
+<section class="panel">
+  <h2 class="panel__title">Add a category</h2>
+  <form method="post" action="{{ url_for('categories.create') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ field(form.name, maxlength="40", autocomplete="off") }}
+    {{ field(form.kind) }}
+    <button type="submit" class="button button--inline">Add category</button>
+  </form>
+</section>
+
+{% macro category_list(title, items) %}
+<section class="panel">
+  <h2 class="panel__title">{{ title }}</h2>
+  {% if items %}
+  <ul class="rows">
+    {% for c in items %}
+    <li>
+      <a class="row" href="{{ url_for('categories.edit', category_id=c.id) }}">
+        <span>{{ c.name }}</span>
+        <span class="muted">{{ counts.get(c.id, 0) }} transaction{{ 's' if counts.get(c.id, 0) != 1 }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="muted">None yet.</p>
+  {% endif %}
+</section>
+{% endmacro %}
+
+{{ category_list("Expense categories", expense_categories) }}
+{{ category_list("Income categories", income_categories) }}
+{% endblock %}

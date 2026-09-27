@@ -1,0 +1,27 @@
+{% extends "auth/base_auth.html" %}
+{% from "_macros.html" import field, password_field %}
+
+{% block title %}Sign In | {{ app_name }}{% endblock %}
+
+{% block auth_content %}
+<h1 class="auth__title">Welcome back</h1>
+<p class="auth__desc">Sign in to your {{ app_name }} account to manage your wealth.</p>
+
+<form method="post" novalidate>
+  {{ form.hidden_tag() }}
+  {{ field(form.email, type="email", autocomplete="email", inputmode="email", placeholder="you@example.com") }}
+  {{ password_field(form.password, autocomplete="current-password") }}
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+    <label class="check" style="margin:0;">
+      {{ form.remember() }}
+      <span style="font-size:0.9rem;">Remember me</span>
+    </label>
+    <a href="{{ url_for('auth.forgot_password') }}" class="auth__forgot" style="margin:0;">Forgot password?</a>
+  </div>
+
+  {{ form.submit(class="button") }}
+</form>
+
+<p class="auth__switch">Don't have an account? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+{% endblock %}

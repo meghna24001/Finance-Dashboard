@@ -1,0 +1,14 @@
+<section class="summary" aria-label="Totals for {{ month_label }}">
+  <div class="summary__item">
+    <p class="summary__label">Income</p>
+    <p class="summary__value summary__value--income">{{ summary.income|money }}</p>
+  </div>
+  <div class="summary__item">
+    <p class="summary__label">Spent</p>
+    <p class="summary__value">{{ summary.spent|money }}</p>
+  </div>
+  <div class="summary__item">
+    <p class="summary__label">Left</p>
+    <p class="summary__value{% if summary.balance < 0 %} summary__value--negative{% endif %}">{{ summary.balance|money }}</p>
+  </div>
+</section>

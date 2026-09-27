@@ -1,0 +1,36 @@
+{% extends "app_base.html" %}
+
+{% block title %}Transactions | {{ app_name }}{% endblock %}
+
+{% block content %}
+<h1 class="page__title">Transactions</h1>
+
+<div class="actions">
+  <a class="button button--inline" href="{{ url_for('transactions.new', kind='expense') }}">Add expense</a>
+  <a class="button button--inline" href="{{ url_for('transactions.new', kind='income') }}">Add income</a>
+  <a class="button button--inline" href="{{ url_for('transactions.import_statement') }}">Import statement</a>
+</div>
+
+<div data-pending-list></div>
+
+{% set endpoint = 'transactions.index' %}
+{% include "_month_switch.html" %}
+
+{% include "transactions/_summary.html" %}
+
+{% if not days %}
+<section class="panel panel--empty">
+  <h2 class="panel__title">No transactions in {{ month_label }}</h2>
+  <p>Use “Add expense” or “Add income” above to record one.</p>
+</section>
+{% endif %}
+
+{% for day in days %}
+<h3 class="txn-date">{{ day.date.strftime("%a %d %b %Y") }}</h3>
+<ul class="txns">
+  {% for t in day["items"] %}
+    {% include "transactions/_row.html" %}
+  {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field %}
+
+{% block title %}Edit category | {{ app_name }}{% endblock %}
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<h1 class="page__title">Edit {{ category.type }} category</h1>
+
+<section class="panel">
+  <form method="post" action="{{ url_for('categories.edit', category_id=category.id) }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ field(form.name, maxlength="40", autocomplete="off") }}
+    <div class="actions">
+      <button type="submit" class="button button--inline">Save name</button>
+      <a class="button button--inline button--outline" href="{{ url_for('categories.index') }}">Cancel</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <h2 class="panel__title">Delete this category</h2>
+  {% if uses %}
+  <p class="muted">It's used by {{ uses }} transaction{{ 's' if uses != 1 }}, so it can't be deleted. Rename it, or change or delete those transactions first.</p>
+  {% else %}
+  <p class="muted">No transactions use it, so it can be deleted safely.{% if category.budget %} Its monthly budget will be deleted with it.{% endif %}</p>
+  <form method="post" action="{{ url_for('categories.delete', category_id=category.id) }}" data-confirm="Delete the category “{{ category.name }}”?">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="button button--inline button--danger">Delete category</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

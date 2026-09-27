@@ -1,0 +1,22 @@
+{# One budget with its progress bar. Needs `r` (a row from budget_rows) and `month_key`. #}
+<li>
+  <a class="budget" href="{{ url_for('budgets.edit', budget_id=r.budget.id, month=month_key) }}">
+    <span class="budget__top">
+      <span class="budget__name">{{ r.name }}</span>
+      <span class="badge badge--{{ r.status }}">
+        {%- if r.status == 'over' %}Over budget
+        {%- elif r.status == 'close' %}{{ 'Limit reached' if r.left == 0 else 'Close to limit' }}
+        {%- else %}On track{% endif -%}
+      </span>
+    </span>
+    <span class="meter meter--{{ r.status }}" role="progressbar" aria-label="{{ r.name }} budget used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ r.bar }}">
+      <span class="meter__fill" style="width: {{ r.bar }}%"></span>
+    </span>
+    <span class="budget__figures">
+      <span>{{ r.spent|money }} of {{ r.limit|money }} ({{ r.percent }}%)</span>
+      <span class="budget__left{% if r.status == 'over' %} budget__left--over{% endif %}">
+        {%- if r.status == 'over' %}{{ r.over_by|money }} over{% else %}{{ r.left|money }} left{% endif -%}
+      </span>
+    </span>
+  </a>
+</li>

@@ -1,0 +1,196 @@
+{% extends "app_base.html" %}
+
+{% block title %}Dashboard | {{ app_name }}{% endblock %}
+
+{% block content %}
+<!-- Greeting Header -->
+<div class="dashboard-greeting">
+  <h1 class="page__title" id="time-greeting">Hello, {{ current_user.name }}</h1>
+  <p class="page__subtitle">Here is your financial overview for {{ month_label }}.</p>
+</div>
+
+<!-- Primary Action Buttons -->
+<div class="actions">
+  <a class="button button--inline" href="{{ url_for('transactions.new', kind='expense') }}">+ Add expense</a>
+  <a class="button button--inline" href="{{ url_for('transactions.new', kind='income') }}">+ Add income</a>
+  <a class="button button--inline" href="{{ url_for('recurring.new') }}">📈 Set Up SIP</a>
+  <a class="button button--inline" href="{{ url_for('bank_accounts.index') }}">🏦 Accounts</a>
+</div>
+
+<div data-pending-list></div>
+
+{% set endpoint = 'dashboard.home' %}
+{% include "_month_switch.html" %}
+
+{% if count or summary.spent or summary.income %}
+<!-- Quick Stats Overview Cards -->
+<div class="quick-stats">
+  <div class="stat-card">
+    <div class="stat-card__label">Savings Rate</div>
+    <div class="stat-card__value {% if savings_rate is not none and savings_rate >= 20 %}stat-card__value--good{% elif savings_rate is not none and savings_rate < 0 %}stat-card__value--bad{% elif savings_rate is not none %}stat-card__value--warn{% endif %}">
+      {% if savings_rate is not none %}{{ savings_rate }}%{% else %}—{% endif %}
+    </div>
+    <div class="stat-card__sub">
+      {% if savings_rate is not none and savings_rate >= 20 %}Healthy savings pace{% elif savings_rate is not none and savings_rate < 0 %}Over budget this month{% else %}Saved of income{% endif %}
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-card__label">Daily Avg Spend</div>
+    <div class="stat-card__value">{{ daily_avg|money }}</div>
+    <div class="stat-card__sub">per day this month</div>
+  </div>
+
+  {% if accounts %}
+  <div class="stat-card">
+    <div class="stat-card__label">Tracked Net Worth</div>
+    <div class="stat-card__value">{{ net_worth|money }}</div>
+    <div class="stat-card__sub">across {{ accounts|length }} account{{ 's' if accounts|length > 1 else '' }}</div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Monthly Income / Spent / Balance Summary -->
+{% include "transactions/_summary.html" %}
+
+<!-- Budgets Progress Panel -->
+{% if budget_total or count %}
+<section class="panel">
+  <h2 class="panel__title">Budgets</h2>
+  {% if budget_top %}
+  <ul class="budgets">
+    {% for r in budget_top %}
+      {% include "budgets/_bar.html" %}
+    {% endfor %}
+  </ul>
+  <p class="more"><a href="{{ url_for('budgets.index', month=month_key) }}">{% if budget_total > 3 %}See all {{ budget_total }} budgets{% else %}View full budget breakdown{% endif %}</a></p>
+  {% else %}
+  <p class="muted">Set a monthly spending limit for categories like Food or Shopping to receive proactive alerts.</p>
+  <p class="more"><a class="button button--inline" href="{{ url_for('budgets.index', month=month_key) }}">Set a budget</a></p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if count == 0 and not trend_has_data %}
+<section class="panel panel--empty">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="12" y1="8" x2="12" y2="12"></line>
+    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+  </svg>
+  <h2 class="panel__title">Nothing recorded for {{ month_label }}</h2>
+  <p class="muted">Record an expense, income, or scan a receipt, and your analytics will appear here.</p>
+  <p class="more" style="margin-top:1.25rem;">
+    <a class="button button--inline" href="{{ url_for('transactions.new', kind='expense') }}">Add First Expense</a>
+  </p>
+</section>
+{% else %}
+
+<!-- Where your money went -->
+<section class="panel">
+  <h2 class="panel__title">Where your money went</h2>
+  {% if spending %}
+  <div class="spending">
+    <div class="chart chart--doughnut">
+      <canvas id="spending-chart" role="img" aria-label="Doughnut chart of spending by category for {{ month_label }}. The same figures are listed beside it.">
+        Spending by category is listed next to this chart.
+      </canvas>
+    </div>
+    <ul class="breakdown">
+      {% for row in spending %}
+      <li>
+        <span class="swatch" style="background: {{ row.color }}" aria-hidden="true"></span>
+        <span class="breakdown__name">{{ row.name }}</span>
+        <span class="breakdown__percent muted">{{ row.percent_text }}</span>
+        <span class="breakdown__amount">{{ row.amount|money }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% else %}
+  <p class="muted">No expenses in {{ month_label }}.</p>
+  {% endif %}
+</section>
+
+<!-- Last 6 months grouped bar chart -->
+<section class="panel">
+  <h2 class="panel__title">Last 6 months</h2>
+  {% if trend_has_data %}
+  <div class="chart chart--histogram">
+    <canvas id="trend-chart" role="img" aria-label="Grouped bar chart of income and spending for each of the last 6 months. The same figures are in the table below.">
+      Income and spending by month are in the table below this chart.
+    </canvas>
+  </div>
+  <details class="numbers">
+    <summary>Show the numbers</summary>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th scope="col">Month</th><th scope="col">Income</th><th scope="col">Spent</th></tr>
+        </thead>
+        <tbody>
+          {% for m in trend %}
+          <tr>
+            <th scope="row">{{ m.full_label }}</th>
+            <td>{{ m.income|money }}</td>
+            <td>{{ m.spent|money }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  {% else %}
+  <p class="muted">No transactions in these 6 months yet.</p>
+  {% endif %}
+</section>
+
+<!-- Latest Transactions -->
+{% if latest %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin:1.75rem 0 0.75rem;">
+  <h2 class="section-title" style="margin:0;">Recent Transactions</h2>
+  {% if count > latest|length %}
+  <a href="{{ url_for('transactions.index', month=month_key) }}" style="font-size:0.875rem; font-weight:600;">See all {{ count }} transactions</a>
+  {% endif %}
+</div>
+
+<ul class="txns">
+  {% set show_date = true %}
+  {% for t in latest %}
+    {% include "transactions/_row.html" %}
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="application/json" id="chart-data">{{ chart_data|tojson }}</script>
+<script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js', v='20260925-3') }}"></script>
+<script>
+  (function () {
+    var greetingEl = document.getElementById('time-greeting');
+    if (!greetingEl) return;
+    var hour = new Date().getHours();
+    var greeting = "Good evening";
+    var icon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.4 8.5 8.5 0 1 0 20.5 15.5Z"></path><path d="m17.5 4.5.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5.5-1.5Z"></path></svg>';
+    if (hour < 12) {
+      greeting = "Good morning";
+      icon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18"></path><path d="M5 15a7 7 0 0 1 14 0"></path><path d="M12 3v3M4.9 6.1l2.1 2.1M19.1 6.1 17 8.2"></path><path d="m12 11 1.2 2.2 2.5.4-1.8 1.8.4 2.6-2.3-1.2-2.3 1.2.4-2.6-1.8-1.8 2.5-.4L12 11Z"></path></svg>';
+    } else if (hour < 17) {
+      greeting = "Good afternoon";
+      icon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>';
+    }
+    var name = {{ current_user.name|tojson }};
+    greetingEl.textContent = greeting + ", " + name + " ";
+    var iconEl = document.createElement("span");
+    iconEl.className = "dashboard-greeting__icon";
+    iconEl.innerHTML = icon;
+    greetingEl.appendChild(iconEl);
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "app_base.html" %}
+
+{% block title %}Recurring & SIP | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="recurring-header">
+  <div>
+    <h1 class="page__title">Recurring & SIP Rules</h1>
+    <p class="page__subtitle">Automate your Mutual Fund SIPs, salaries, rent, EMIs, and recurring expenses.</p>
+  </div>
+  <div class="recurring-header__actions">
+    <a class="button button--inline" href="{{ url_for('recurring.new') }}">+ Add Recurring / SIP</a>
+    <form method="post" action="{{ url_for('recurring.run_due') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="button button--inline" title="Record all transactions whose due date has arrived">⚡ Process Due Now</button>
+    </form>
+  </div>
+</div>
+
+{% if rules %}
+<section class="panel panel--list">
+  <ul class="recurring-list">
+    {% for r in rules %}
+    <li class="recurring-item">
+      <div class="recurring-item__icon">
+        {% if r.type == 'income' %}💰{% else %}📈{% endif %}
+      </div>
+      <div class="recurring-item__main">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span class="status-dot {% if r.is_active %}status-dot--active{% else %}status-dot--paused{% endif %}" title="{{ 'Active' if r.is_active else 'Paused' }}"></span>
+          <span class="recurring-item__name">{{ r.name }}</span>
+        </div>
+        <div class="recurring-item__meta">
+          <span>{{ freq_labels.get(r.frequency, r.frequency) }}</span>
+          <span>·</span>
+          <span>Next due: <strong>{{ r.next_due.strftime("%d %b %Y") }}</strong></span>
+          {% if r.category %}<span>·</span><span>{{ r.category.name }}</span>{% endif %}
+          <span>·</span>
+          <span>{{ r.payment_mode.replace('_', ' ').capitalize() }}</span>
+        </div>
+      </div>
+
+      <div class="recurring-item__amount {% if r.type == 'income' %}recurring-item__amount--income{% endif %}">
+        {{ '+' if r.type == 'income' else '−' }}{{ r.amount|money }}
+      </div>
+
+      <div class="recurring-item__actions">
+        <form method="post" action="{{ url_for('recurring.toggle', rec_id=r.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="button button--inline recurring-action-button" title="{{ 'Pause' if r.is_active else 'Activate' }}">
+            {{ 'Pause' if r.is_active else 'Resume' }}
+          </button>
+        </form>
+        <a class="button button--inline recurring-action-button" href="{{ url_for('recurring.edit', rec_id=r.id) }}">Edit</a>
+        <form method="post" action="{{ url_for('recurring.delete', rec_id=r.id) }}" data-confirm="Delete recurring rule '{{ r.name }}'? Previously recorded transactions are kept.">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="button button--inline recurring-action-button">Delete</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<section class="panel panel--empty">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="23 4 23 10 17 10"></polyline>
+    <polyline points="1 20 1 14 7 14"></polyline>
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+  </svg>
+  <h2 class="panel__title">No recurring rules configured</h2>
+  <p class="muted">Set up mutual fund SIPs, recurring bills, rent, or recurring salaries to save time.</p>
+  <p class="more">
+    <a class="button button--inline" href="{{ url_for('recurring.new') }}">Create your first recurring rule</a>
+  </p>
+</section>
+{% endif %}
+{% endblock %}

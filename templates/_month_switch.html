@@ -1,0 +1,10 @@
+{# Previous / next month links. Set `endpoint` to the page they should go to. #}
+<div class="months">
+  <a class="months__link" href="{{ url_for(endpoint, month=prev_month) }}" aria-label="Previous month">‹ Previous</a>
+  <h2 class="months__label">{{ month_label }}</h2>
+  {% if next_month %}
+    <a class="months__link" href="{{ url_for(endpoint, month=next_month) }}" aria-label="Next month">Next ›</a>
+  {% else %}
+    <span class="months__link months__link--off" aria-hidden="true">Next ›</span>
+  {% endif %}
+</div>

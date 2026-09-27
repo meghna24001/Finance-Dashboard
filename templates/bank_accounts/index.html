@@ -1,0 +1,78 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field %}
+
+{% block title %}Bank Accounts & Wallets | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;">
+  <div>
+    <h1 class="page__title">Bank Accounts & Wallets</h1>
+    <p class="page__subtitle">Track multiple bank accounts, UPI wallets, credit cards, and cash pockets in one place.</p>
+  </div>
+</div>
+
+{% if accounts %}
+<div class="accounts-grid">
+  {% for acct in accounts %}
+  <div class="account-card" style="--account-color: {{ acct.color }};">
+    <div class="account-card__type">{{ acct.account_type.replace('_', ' ') }}</div>
+    <div class="account-card__name">{{ acct.name }}</div>
+    {% if acct.last4 %}
+    <div class="account-card__last4">•••• {{ acct.last4 }}</div>
+    {% endif %}
+    {% if acct.balance_hint is not none %}
+    <div style="margin-top:0.75rem;">
+      <span class="muted" style="font-size:0.8rem;">Current Balance</span>
+      <div style="font-size:1.25rem; font-weight:700; font-variant-numeric:tabular-nums;">{{ acct.balance_hint|money }}</div>
+    </div>
+    {% endif %}
+
+    <div class="account-card__actions">
+      <a class="button button--ghost button--compact" href="{{ url_for('bank_accounts.edit', account_id=acct.id) }}">Edit</a>
+      <form method="post" action="{{ url_for('bank_accounts.delete', account_id=acct.id) }}" data-confirm="Remove '{{ acct.name }}'? Linked transactions will remain without an account tag.">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="button button--ghost button--danger button--compact">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<section class="panel panel--empty">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+    <line x1="1" y1="10" x2="23" y2="10"></line>
+  </svg>
+  <h2 class="panel__title">No bank accounts added yet</h2>
+  <p class="muted">Add your savings accounts, UPI wallets, or credit cards below to organize your payments.</p>
+</section>
+{% endif %}
+
+<section class="panel page--narrow" style="margin-top:2rem;">
+  <h2 class="panel__title">Add a new account or wallet</h2>
+  <form method="post" action="{{ url_for('bank_accounts.create') }}" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.name, placeholder="e.g. HDFC Salary, SBI Savings, Paytm Wallet") }}
+    <div class="field-row">
+      {{ field(form.account_type) }}
+      {{ field(form.last4, placeholder="e.g. 4321", maxlength="4", inputmode="numeric") }}
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field__label" for="color">Card Color Tag</label>
+        <select name="color" id="color" class="field__input">
+          <option value="#6366f1" style="color:#6366f1;">Indigo</option>
+          <option value="#10b981" style="color:#10b981;">Emerald Green</option>
+          <option value="#f59e0b" style="color:#f59e0b;">Amber Orange</option>
+          <option value="#f43f5e" style="color:#f43f5e;">Rose Red</option>
+          <option value="#06b6d4" style="color:#06b6d4;">Cyan Blue</option>
+          <option value="#8b5cf6" style="color:#8b5cf6;">Purple</option>
+        </select>
+      </div>
+      {{ field(form.balance_hint, placeholder="Optional initial balance", type="number", step="0.01") }}
+    </div>
+
+    <button type="submit" class="button button--inline">Save Account</button>
+  </form>
+</section>
+{% endblock %}
