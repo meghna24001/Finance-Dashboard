@@ -113,12 +113,39 @@
   {% endif %}
 </section>
 
-<!-- Last 6 months grouped bar chart -->
+<!-- Income and spending history -->
 <section class="panel">
-  <h2 class="panel__title">Last 6 months</h2>
+  <div class="chart-panel__header">
+    <div>
+      <h2 class="panel__title">Income vs. spending</h2>
+      <p class="muted chart-panel__range">{{ trend_range_label }}</p>
+    </div>
+    <form class="chart-range" method="get" action="{{ url_for('dashboard.home') }}">
+      <input type="hidden" name="month" value="{{ month_key }}">
+      <label class="sr-only" for="trend-range">Chart date range</label>
+      <select id="trend-range" name="trend_range" data-trend-range>
+        <option value="3"{% if trend_range == '3' %} selected{% endif %}>3 months</option>
+        <option value="6"{% if trend_range == '6' %} selected{% endif %}>6 months</option>
+        <option value="12"{% if trend_range == '12' %} selected{% endif %}>12 months</option>
+        <option value="fiscal"{% if trend_range == 'fiscal' %} selected{% endif %}>Financial year (Apr–Mar)</option>
+        <option value="custom"{% if trend_range == 'custom' %} selected{% endif %}>Custom range</option>
+      </select>
+      <div class="chart-range__dates" data-custom-range{% if trend_range != 'custom' %} hidden{% endif %}>
+        <label>
+          <span>From</span>
+          <input type="date" name="start" value="{{ trend_start }}" min="2000-01-01" max="{{ today_iso }}">
+        </label>
+        <label>
+          <span>To</span>
+          <input type="date" name="end" value="{{ trend_end }}" min="2000-01-01" max="{{ today_iso }}">
+        </label>
+      </div>
+      <button class="chart-range__apply" type="submit">Apply</button>
+    </form>
+  </div>
   {% if trend_has_data %}
   <div class="chart chart--histogram">
-    <canvas id="trend-chart" role="img" aria-label="Grouped bar chart of income and spending for each of the last 6 months. The same figures are in the table below.">
+    <canvas id="trend-chart" role="img" aria-label="Grouped bar chart comparing income and spending for {{ trend_range_label }}. The same figures are in the table below.">
       Income and spending by month are in the table below this chart.
     </canvas>
   </div>
@@ -142,7 +169,7 @@
     </div>
   </details>
   {% else %}
-  <p class="muted">No transactions in these 6 months yet.</p>
+  <p class="muted">No transactions in this range yet.</p>
   {% endif %}
 </section>
 
@@ -170,9 +197,17 @@
 {{ super() }}
 <script type="application/json" id="chart-data">{{ chart_data|tojson }}</script>
 <script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/dashboard.js', v='20260925-3') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js', v='20260928-1') }}"></script>
 <script>
   (function () {
+    var rangeSelect = document.querySelector("[data-trend-range]");
+    var customRange = document.querySelector("[data-custom-range]");
+    if (rangeSelect && customRange) {
+      rangeSelect.addEventListener("change", function () {
+        customRange.hidden = rangeSelect.value !== "custom";
+      });
+    }
+
     var greetingEl = document.getElementById('time-greeting');
     if (!greetingEl) return;
     var hour = new Date().getHours();

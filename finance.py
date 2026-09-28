@@ -127,6 +127,41 @@ def monthly_trend(user_id, year, month, months=6):
     return result
 
 
+def date_range_trend(user_id, start_date, end_date):
+    """Income and spending by month within an inclusive date range."""
+    start_month = date(start_date.year, start_date.month, 1)
+    end_month = date(end_date.year, end_date.month, 1)
+    month_count = (end_month.year - start_month.year) * 12 + end_month.month - start_month.month + 1
+
+    found = (
+        db.session.query(Transaction.date, Transaction.type, Transaction.amount)
+        .filter(
+            Transaction.user_id == user_id,
+            Transaction.date >= start_date,
+            Transaction.date <= end_date,
+        )
+        .all()
+    )
+
+    income, spent = defaultdict(Decimal), defaultdict(Decimal)
+    for day, kind, amount in found:
+        (income if kind == "income" else spent)[(day.year, day.month)] += amount
+
+    result = []
+    for offset in range(month_count):
+        year, month = shift_month(start_month.year, start_month.month, offset)
+        first = date(year, month, 1)
+        result.append(
+            {
+                "label": first.strftime("%b %Y"),
+                "full_label": first.strftime("%B %Y"),
+                "income": income[(year, month)],
+                "spent": spent[(year, month)],
+            }
+        )
+    return result
+
+
 CLOSE_TO_LIMIT = Decimal("80")  # "close" starts at 80% of the limit
 
 

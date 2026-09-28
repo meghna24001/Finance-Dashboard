@@ -1044,6 +1044,33 @@ html[data-theme="dark"] .notif-item--unread { background: rgba(99,102,241,0.12);
   box-shadow: var(--shadow-sm);
 }
 .months__label { font-size: 1rem; font-weight: 600; text-align: center; }
+.months__picker { display: flex; align-items: center; justify-content: center; gap: 0.4rem; min-width: 0; }
+.months__input {
+  min-width: 0;
+  width: 10.5rem;
+  min-height: 2.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.months__go {
+  min-height: 2.5rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.months__go:hover { background: var(--primary-light); }
 .months__link {
   min-width: 5rem;
   padding: 0.35rem 0.75rem;
@@ -1057,6 +1084,13 @@ html[data-theme="dark"] .notif-item--unread { background: rgba(99,102,241,0.12);
 .months__link:hover { background: var(--primary-light); }
 .months__link:last-child { text-align: right; }
 .months__link--off { visibility: hidden; }
+@media (max-width: 639px) {
+  .months { gap: 0.2rem; padding: 0.45rem; }
+  .months__link { min-width: 0; padding: 0.3rem; font-size: 0.78rem; }
+  .months__input { width: 8.5rem; font-size: 0.82rem; }
+  .months__go { padding: 0 0.45rem; font-size: 0.78rem; }
+  .months__picker { gap: 0.2rem; }
+}
 
 /* ============================================================
    SUMMARY TOTALS
@@ -1263,8 +1297,54 @@ html[data-theme="dark"] .notif-item--unread { background: rgba(99,102,241,0.12);
 .chart--doughnut { height: 15rem; }
 .chart--bars,
 .chart--histogram { height: 16rem; }
+.chart-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+.chart-panel__range { margin-top: 0.15rem; font-size: 0.8rem; }
+.chart-range { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.chart-range select,
+.chart-range input {
+  min-height: 2.5rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+}
+.chart-range select { max-width: 100%; }
+.chart-range__dates { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.chart-range__dates[hidden] { display: none; }
+.chart-range__dates label { display: flex; align-items: center; gap: 0.3rem; color: var(--muted); font-size: 0.75rem; }
+.chart-range__dates input { width: 9.5rem; }
+.chart-range__apply {
+  min-height: 2.5rem;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.chart-range__apply:hover { background: var(--primary-dark); }
 
 .spending { display: grid; gap: 1.25rem; }
+@media (max-width: 639px) {
+  .chart-range { align-items: stretch; width: 100%; }
+  .chart-range select { flex: 1 1 100%; }
+  .chart-range__dates { width: 100%; }
+  .chart-range__dates label { flex: 1 1 100%; justify-content: space-between; }
+  .chart-range__dates input { flex: 1; width: auto; }
+}
 @media (min-width: 640px) {
   .spending { grid-template-columns: 16rem 1fr; align-items: center; gap: 2rem; }
   .chart--doughnut { height: 16rem; }
@@ -1477,13 +1557,6 @@ html[data-theme="dark"] .notif-item--unread { background: rgba(99,102,241,0.12);
   justify-content: flex-end;
   gap: 0.25rem;
 }
-.recurring-action-button {
-  min-width: 0 !important;
-  min-height: 40px !important;
-  padding: 0 0.75rem !important;
-  font-size: 0.85rem !important;
-}
-
 @media (max-width: 760px) {
   .recurring-item {
     flex-wrap: wrap;

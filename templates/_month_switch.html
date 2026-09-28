@@ -1,9 +1,18 @@
 {# Previous / next month links. Set `endpoint` to the page they should go to. #}
 <div class="months">
-  <a class="months__link" href="{{ url_for(endpoint, month=prev_month) }}" aria-label="Previous month">‹ Previous</a>
-  <h2 class="months__label">{{ month_label }}</h2>
+  <a class="months__link" href="{{ url_for(endpoint, month=prev_month, trend_range=request.args.get('trend_range'), start=request.args.get('start'), end=request.args.get('end')) }}" aria-label="Previous month">‹ Previous</a>
+  <form class="months__picker" method="get" action="{{ url_for(endpoint) }}">
+    {% if endpoint == 'dashboard.home' and request.args.get('trend_range') %}
+    <input type="hidden" name="trend_range" value="{{ request.args.get('trend_range') }}">
+    {% if request.args.get('start') %}<input type="hidden" name="start" value="{{ request.args.get('start') }}">{% endif %}
+    {% if request.args.get('end') %}<input type="hidden" name="end" value="{{ request.args.get('end') }}">{% endif %}
+    {% endif %}
+    <label class="sr-only" for="month-picker">Choose month</label>
+    <input class="months__input" type="month" id="month-picker" name="month" value="{{ month_key }}" min="2000-01" max="{{ current_month }}">
+    <button type="submit" class="months__go">Go</button>
+  </form>
   {% if next_month %}
-    <a class="months__link" href="{{ url_for(endpoint, month=next_month) }}" aria-label="Next month">Next ›</a>
+    <a class="months__link" href="{{ url_for(endpoint, month=next_month, trend_range=request.args.get('trend_range'), start=request.args.get('start'), end=request.args.get('end')) }}" aria-label="Next month">Next ›</a>
   {% else %}
     <span class="months__link months__link--off" aria-hidden="true">Next ›</span>
   {% endif %}

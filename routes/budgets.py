@@ -40,6 +40,7 @@ def show_index(form):
         can_add=bool(form.category_id.choices),
         month_label=date(year, month, 1).strftime("%B %Y"),
         month_key=f"{year}-{month:02d}",
+        current_month=f"{now.year}-{now.month:02d}",
         prev_month=f"{prev_year}-{prev_month:02d}",
         next_month=None if is_current_month else f"{next_year}-{next_month:02d}",
     )

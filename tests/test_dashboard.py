@@ -80,6 +80,22 @@ check("Trend covers 6 months, oldest first, ending this month", data["trend"]["l
 check("Trend income per month is right", data["trend"]["income"] == [0.0, 0.0, 0.0, 0.0, 900.0, 2000.0])
 check("Trend spending per month is right (old 999 is excluded)", data["trend"]["spent"] == [0.0, 0.0, 40.0, 0.0, 1234.56, 100.0])
 check("The numbers table lists all 6 months with money formatting", html.count("<tbody>") == 1 and "$1,234.56" in html and html.count("<th scope=\"row\">") == 6)
+check("Dashboard has a direct month picker", 'type="month" id="month-picker"' in html and f'max="{NOW.strftime("%Y-%m")}"' in html)
+check("Dashboard chart offers the expected range presets", all(option in html for option in ['value="3"', 'value="6"', 'value="12"', 'value="fiscal"', 'value="custom"']))
+three_months = chart_data(asha, "/dashboard?trend_range=3")
+check("3-month preset returns 3 monthly buckets", len(three_months["trend"]["labels"]) == 3)
+twelve_months = chart_data(asha, "/dashboard?trend_range=12")
+check("12-month preset returns 12 monthly buckets", len(twelve_months["trend"]["labels"]) == 12)
+fiscal = chart_data(asha, "/dashboard?trend_range=fiscal")
+check("Financial-year preset covers April through March", len(fiscal["trend"]["labels"]) == 12 and fiscal["trend"]["titles"][0].startswith("April "))
+custom_start = month_day(3).isoformat()
+custom_end = month_day(0, 4).isoformat()
+custom_html = text(asha.get(f"/dashboard?trend_range=custom&start={custom_start}&end={custom_end}"))
+custom = chart_data(asha, f"/dashboard?trend_range=custom&start={custom_start}&end={custom_end}")
+check("Custom range controls display the selected dates", f'value="{custom_start}"' in custom_html and f'value="{custom_end}"' in custom_html)
+check("Custom range uses exact date boundaries and monthly buckets", len(custom["trend"]["labels"]) == 4 and custom["trend"]["spent"] == [40.0, 0.0, 1234.56, 90.0])
+invalid_custom = text(asha.get("/dashboard?trend_range=custom&start=2026-09-20&end=2026-09-01"))
+check("Invalid custom ranges show an error and fall back safely", "Choose a valid date range" in invalid_custom and 'value="6" selected' in invalid_custom)
 
 # ---- more than 6 categories are lumped together
 lump = app.test_client(); signup(lump, "Lump", "lump@example.com"); L = "lump@example.com"

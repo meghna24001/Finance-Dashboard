@@ -47,7 +47,7 @@
       <div class="recurring-item__actions">
         <form method="post" action="{{ url_for('recurring.toggle', rec_id=r.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="button button--inline recurring-action-button" title="{{ 'Pause' if r.is_active else 'Activate' }}">
+          <button type="submit" class="text-action" title="{{ 'Pause' if r.is_active else 'Activate' }}" aria-label="{{ 'Pause' if r.is_active else 'Resume' }} {{ r.name }}">
             {{ 'Pause' if r.is_active else 'Resume' }}
           </button>
         </form>
