@@ -5,6 +5,31 @@
 {% block body %}
 {% set here = request.endpoint or "" %}
 
+<div class="page-loader" data-page-loader role="status" aria-live="polite" hidden>
+  <div class="page-loader__card">
+    <span class="spinner" aria-hidden="true"></span>
+    <span>Opening {{ app_short_name }}…</span>
+  </div>
+</div>
+<script>
+  (function () {
+    var loader = document.querySelector("[data-page-loader]");
+    if (!loader || !window.matchMedia("(max-width: 760px)").matches) return;
+
+    var timeout = window.setTimeout(function () {
+      loader.hidden = false;
+    }, 300);
+
+    function hideLoader() {
+      window.clearTimeout(timeout);
+      loader.hidden = true;
+    }
+
+    window.addEventListener("load", hideLoader, { once: true });
+    window.addEventListener("pageshow", hideLoader);
+  })();
+</script>
+
 <div class="layout">
   <!-- Mobile backdrop overlay -->
   <div class="sidebar-overlay" aria-hidden="true"></div>

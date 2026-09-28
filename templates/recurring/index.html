@@ -51,10 +51,10 @@
             {{ 'Pause' if r.is_active else 'Resume' }}
           </button>
         </form>
-        <a class="button button--inline recurring-action-button" href="{{ url_for('recurring.edit', rec_id=r.id) }}">Edit</a>
+        <a class="text-action" href="{{ url_for('recurring.edit', rec_id=r.id) }}" aria-label="Edit {{ r.name }}">Edit</a>
         <form method="post" action="{{ url_for('recurring.delete', rec_id=r.id) }}" data-confirm="Delete recurring rule '{{ r.name }}'? Previously recorded transactions are kept.">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="button button--inline recurring-action-button">Delete</button>
+          <button type="submit" class="text-action text-action--danger" aria-label="Delete {{ r.name }}">Delete</button>
         </form>
       </div>
     </li>

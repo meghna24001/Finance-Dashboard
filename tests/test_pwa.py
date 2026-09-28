@@ -60,6 +60,7 @@ signup(anon)
 for url in ["/dashboard", "/transactions", "/profile"]:
     html = text(anon.get(url))
     check(f"{url} links the manifest, icons and app script", all(x in html for x in ['rel="manifest"', 'rel="apple-touch-icon"', "js/pwa.js", 'name="theme-color"', 'apple-mobile-web-app-capable']))
+    check(f"{url} includes a hidden app loading indicator", 'data-page-loader role="status"' in html and 'data-page-loader role="status" aria-live="polite" hidden' in html)
 login_html = text(app.test_client().get("/login"))
 check("The sign-in page (before login) is installable too", 'rel="manifest"' in login_html and "js/pwa.js" in login_html)
 

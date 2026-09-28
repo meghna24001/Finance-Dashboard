@@ -28,10 +28,10 @@
     {% endif %}
 
     <div class="account-card__actions">
-      <a class="button button--ghost button--compact" href="{{ url_for('bank_accounts.edit', account_id=acct.id) }}">Edit</a>
+      <a class="text-action" href="{{ url_for('bank_accounts.edit', account_id=acct.id) }}" aria-label="Edit {{ acct.name }}">Edit</a>
       <form method="post" action="{{ url_for('bank_accounts.delete', account_id=acct.id) }}" data-confirm="Remove '{{ acct.name }}'? Linked transactions will remain without an account tag.">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="button button--ghost button--danger button--compact">Delete</button>
+        <button type="submit" class="text-action text-action--danger" aria-label="Delete {{ acct.name }}">Delete</button>
       </form>
     </div>
   </div>

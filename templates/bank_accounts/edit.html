@@ -20,12 +20,12 @@
       <div class="field">
         <label class="field__label" for="color">Card Color Tag</label>
         <select name="color" id="color" class="field__input">
-          <option value="#6366f1"{% if acct.color == '#6366f1' %} selected{% endif %}>Indigo</option>
-          <option value="#10b981"{% if acct.color == '#10b981' %} selected{% endif %}>Emerald Green</option>
-          <option value="#f59e0b"{% if acct.color == '#f59e0b' %} selected{% endif %}>Amber Orange</option>
-          <option value="#f43f5e"{% if acct.color == '#f43f5e' %} selected{% endif %}>Rose Red</option>
-          <option value="#06b6d4"{% if acct.color == '#06b6d4' %} selected{% endif %}>Cyan Blue</option>
-          <option value="#8b5cf6"{% if acct.color == '#8b5cf6' %} selected{% endif %}>Purple</option>
+          <option value="#6366f1"{% if form.color.data == '#6366f1' %} selected{% endif %}>Indigo</option>
+          <option value="#10b981"{% if form.color.data == '#10b981' %} selected{% endif %}>Emerald Green</option>
+          <option value="#f59e0b"{% if form.color.data == '#f59e0b' %} selected{% endif %}>Amber Orange</option>
+          <option value="#f43f5e"{% if form.color.data == '#f43f5e' %} selected{% endif %}>Rose Red</option>
+          <option value="#06b6d4"{% if form.color.data == '#06b6d4' %} selected{% endif %}>Cyan Blue</option>
+          <option value="#8b5cf6"{% if form.color.data == '#8b5cf6' %} selected{% endif %}>Purple</option>
         </select>
       </div>
       {{ field(form.balance_hint, type="number", step="0.01") }}

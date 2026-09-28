@@ -8,7 +8,7 @@
         {% if t.type == 'income' %}💰{% elif mode == 'upi' %}📱{% elif mode == 'card' %}💳{% elif mode == 'bank_transfer' %}🏦{% else %}💸{% endif %}
       </span>
       <span class="txn__main">
-        <span class="txn__title">{{ t.description or category_name }}</span>
+        <span class="txn__title" title="{{ t.description or category_name }}">{{ t.description or category_name }}</span>
         <span class="txn__meta">
           {% if t.description %}<span>{{ category_name }}</span> · {% endif %}
           {% if show_date %}<span>{{ t.date.strftime("%d %b") }}</span> · {% endif %}
@@ -31,23 +31,11 @@
       </span>
 
       <div class="txn__actions">
-        <!-- Edit Button -->
-        <a class="button button--inline txn-action-button" href="{{ url_for('transactions.edit', transaction_id=t.id) }}" aria-label="Edit transaction" title="Edit">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
-        </a>
+        <a class="text-action" href="{{ url_for('transactions.edit', transaction_id=t.id) }}" aria-label="Edit {{ t.description or category_name }}">Edit</a>
 
-        <!-- Inline Delete Button -->
-        <form method="post" action="{{ url_for('transactions.delete', transaction_id=t.id) }}" data-confirm="Delete this transaction ({{ t.amount|money }})? This cannot be undone." style="display:inline;">
+        <form method="post" action="{{ url_for('transactions.delete', transaction_id=t.id) }}" data-confirm="Delete this transaction ({{ t.amount|money }})? This cannot be undone.">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="button button--inline txn-action-button" aria-label="Delete transaction" title="Delete">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
+          <button type="submit" class="text-action text-action--danger" aria-label="Delete {{ t.description or category_name }}">Delete</button>
         </form>
       </div>
     </div>

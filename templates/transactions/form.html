@@ -78,7 +78,7 @@
   <p class="muted">This removes it permanently from your records. This action cannot be undone.</p>
   <form method="post" action="{{ url_for('transactions.delete', transaction_id=item.id) }}" data-confirm="Delete this {{ kind }}? This can't be undone.">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="submit" class="button button--inline">Delete {{ kind }}</button>
+    <button type="submit" class="text-action text-action--danger">Delete {{ kind }}</button>
   </form>
 </section>
 {% endif %}
