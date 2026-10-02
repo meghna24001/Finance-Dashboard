@@ -16,7 +16,7 @@ from finance import (
     today,
     totals,
 )
-from models import BankAccount
+from models import BankAccount, Budget
 
 dashboard = Blueprint("dashboard", __name__)
 
@@ -34,7 +34,10 @@ def home():
     year, month = parse_month(request.args.get("month"))
     items = month_transactions(current_user.id, year, month)
     spending = spending_by_category(items)
-    budgets = budget_rows(current_user.budgets, items)
+    budgets = budget_rows(
+        Budget.query.filter_by(user_id=current_user.id, month=date(year, month, 1)).all(),
+        items,
+    )
 
     now = today()
     trend_range = request.args.get("trend_range", "6")

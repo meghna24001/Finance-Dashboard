@@ -34,6 +34,13 @@
           <span>{{ freq_labels.get(r.frequency, r.frequency) }}</span>
           <span>·</span>
           <span>Next due: <strong>{{ r.next_due.strftime("%d %b %Y") }}</strong></span>
+          {% if r.is_active and r.next_due < today %}
+          <span class="recurring-reminder recurring-reminder--overdue">Overdue</span>
+          {% elif r.is_active and r.next_due == today %}
+          <span class="recurring-reminder recurring-reminder--today">Due today</span>
+          {% elif r.is_active and r.next_due <= reminder_cutoff %}
+          <span class="recurring-reminder">Due soon</span>
+          {% endif %}
           {% if r.category %}<span>·</span><span>{{ r.category.name }}</span>{% endif %}
           <span>·</span>
           <span>{{ r.payment_mode.replace('_', ' ').capitalize() }}</span>

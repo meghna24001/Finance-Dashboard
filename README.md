@@ -4,6 +4,15 @@ A Flask application for tracking personal finances. The codebase is organized
 by responsibility so application entry points, route handlers, shared logic,
 and tests are easy to find.
 
+## Finance workflows
+
+Budgets are stored per month and category. Transactions can be searched and
+filtered by date, account, category, and type; transfers between a user's own
+accounts are excluded from income and spending. Statement imports show likely
+matches for review and reconciliation, and the original PDF or spreadsheet is
+parsed in memory rather than saved. Recurring items have due reminders and a
+database guard against generating the same schedule occurrence twice.
+
 ## Project structure
 
 ```text

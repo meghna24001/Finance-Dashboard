@@ -121,6 +121,11 @@ check("The same client_id used by two different people makes two separate transa
 
 # ---- the new transactions show up in the normal pages
 html = asha.get("/transactions").get_data(as_text=True)
-check("Synced entries appear on the Transactions page", "$2,500.00" in html and "$9.00" in html and html.count("Queued lunch") == 2)
+check(
+    "Synced entries appear on the Transactions page",
+    "$2,500.00" in html
+    and "$9.00" in html
+    and html.count('<span class="txn__title" title="Queued lunch">Queued lunch</span>') == 2,
+)
 
 finish()

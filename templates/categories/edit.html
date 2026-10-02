@@ -23,7 +23,7 @@
   {% if uses %}
   <p class="muted">It's used by {{ uses }} transaction{{ 's' if uses != 1 }}, so it can't be deleted. Rename it, or change or delete those transactions first.</p>
   {% else %}
-  <p class="muted">No transactions use it, so it can be deleted safely.{% if category.budget %} Its monthly budget will be deleted with it.{% endif %}</p>
+  <p class="muted">No transactions use it, so it can be deleted safely.{% if category.budgets %} Its monthly budget will be deleted with it for each month.{% endif %}</p>
   <form method="post" action="{{ url_for('categories.delete', category_id=category.id) }}" data-confirm="Delete the category “{{ category.name }}”?">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="button button--inline button--danger">Delete category</button>

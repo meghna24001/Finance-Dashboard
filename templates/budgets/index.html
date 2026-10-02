@@ -6,7 +6,7 @@
 
 {% block content %}
 <h1 class="page__title">Budgets</h1>
-<p class="muted lead">A monthly limit for a category. Each budget applies to every month.</p>
+<p class="muted lead">Set a separate limit for each month and category.</p>
 
 {% set endpoint = 'budgets.index' %}
 {% include "_month_switch.html" %}
@@ -42,7 +42,7 @@
     <button type="submit" class="button button--inline">Add budget</button>
   </form>
   {% else %}
-  <p class="muted">Every expense category already has a budget. To budget for something new, <a href="{{ url_for('categories.index') }}">add a category</a> first.</p>
+  <p class="muted">Every expense category already has a budget for {{ month_label }}. Choose another month or <a href="{{ url_for('categories.index') }}">add a category</a>.</p>
   {% endif %}
 </section>
 {% endblock %}

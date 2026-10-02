@@ -2,7 +2,7 @@
 FinSight — Smart notification computation.
 All alerts are computed on-demand from existing data; no extra DB table.
 """
-from datetime import datetime, timezone, date as date_type
+from datetime import date, datetime, timezone, timedelta
 from decimal import Decimal
 import hashlib
 
@@ -10,7 +10,7 @@ from flask import Blueprint, jsonify
 from flask_login import current_user, login_required
 
 from finance import budget_rows, month_transactions, parse_month, today
-from models import Transaction
+from models import Budget, RecurringTransaction, Transaction
 
 notifications_bp = Blueprint("notifications", __name__)
 
@@ -21,7 +21,10 @@ def compute_notifications(user):
     """Return a list of notification dicts for the given user."""
     now = today()
     items_this_month = month_transactions(user.id, now.year, now.month)
-    budgets = budget_rows(user.budgets, items_this_month)
+    budgets = budget_rows(
+        Budget.query.filter_by(user_id=user.id, month=date(now.year, now.month, 1)).all(),
+        items_this_month,
+    )
 
     notifs = []
     def add(icon, message, kind="info"):
@@ -33,6 +36,12 @@ def compute_notifications(user):
             "kind": kind,
             "created_at": datetime.combine(now, datetime.min.time(), tzinfo=timezone.utc).isoformat(),
         })
+
+    for rule in RecurringTransaction.query.filter_by(user_id=user.id, is_active=True).all():
+        if rule.next_due < now:
+            add("⏰", f"{rule.name} is overdue (due {rule.next_due:%d %b})", "warning")
+        elif rule.next_due <= now + timedelta(days=7):
+            add("⏰", f"{rule.name} is due {rule.next_due:%d %b}", "info")
 
     # 1. Budget exceeded
     for row in budgets:
@@ -69,7 +78,6 @@ def compute_notifications(user):
     for d in dates:
         if d == check:
             streak += 1
-            from datetime import timedelta
             check = check - timedelta(days=1)
         else:
             break

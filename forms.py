@@ -17,7 +17,7 @@ from wtforms import (
 from wtforms.validators import DataRequired, Email, EqualTo, Length, NumberRange, Optional, ValidationError
 
 from currency_utils import get_countries
-from models import ACCOUNT_COLORS, ACCOUNT_TYPES, FREQUENCIES, PAYMENT_MODES, BankAccount, User
+from models import ACCOUNT_COLORS, ACCOUNT_TYPES, FREQUENCIES, PAYMENT_MODES, BankAccount, Budget, User
 
 
 def clean_email(value):
@@ -340,6 +340,43 @@ class TransactionForm(FlaskForm):
             raise ValidationError("Choose a date from the year 2000 onwards.")
 
 
+class TransferForm(FlaskForm):
+    amount = AmountField("Amount", places=2)
+    from_account_id = SelectField("From account", coerce=int, validators=[NumberRange(min=1)])
+    to_account_id = SelectField("To account", coerce=int, validators=[NumberRange(min=1)])
+    date = SimpleDateField("Date")
+    description = StringField(
+        "Note (optional)",
+        filters=[lambda value: value.strip() if value else value],
+        validators=[Length(max=200, message="Use 200 characters or fewer.")],
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        accounts = BankAccount.query.filter_by(
+            user_id=current_user.id, is_active=True
+        ).order_by(BankAccount.name).all()
+        choices = [(account.id, account.name) for account in accounts]
+        self.from_account_id.choices = choices
+        self.to_account_id.choices = choices
+
+    def validate_amount(self, field):
+        validate_money(field)
+
+    def validate_date(self, field):
+        if field.data is None:
+            if not field.process_errors:
+                raise ValidationError("Choose a date.")
+            return
+        latest = datetime.now(timezone.utc).date() + timedelta(days=1)
+        if field.data > latest or field.data < date(2000, 1, 1):
+            raise ValidationError("Choose a valid date from the year 2000 onwards.")
+
+    def validate_to_account_id(self, field):
+        if field.data and field.data == self.from_account_id.data:
+            raise ValidationError("Choose two different accounts.")
+
+
 # ------------------------------------------------------------------- Bank Accounts
 
 class BankAccountForm(FlaskForm):
@@ -400,10 +437,14 @@ class NewBudgetForm(FlaskForm):
     category_id = CategoryField("Category", coerce=int)
     amount = AmountField("Monthly limit", places=2)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, month=None, **kwargs):
         super().__init__(*args, **kwargs)
+        budgeted = {
+            budget.category_id
+            for budget in Budget.query.filter_by(user_id=current_user.id, month=month).all()
+        } if month else set()
         free = sorted(
-            (c for c in current_user.categories if c.type == "expense" and c.budget is None),
+            (c for c in current_user.categories if c.type == "expense" and c.id not in budgeted),
             key=lambda c: c.name.casefold(),
         )
         self.category_id.choices = [(c.id, c.name) for c in free]

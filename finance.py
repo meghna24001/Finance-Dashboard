@@ -110,7 +110,10 @@ def monthly_trend(user_id, year, month, months=6):
 
     income, spent = defaultdict(Decimal), defaultdict(Decimal)
     for day, kind, amount in found:
-        (income if kind == "income" else spent)[(day.year, day.month)] += amount
+        if kind == "income":
+            income[(day.year, day.month)] += amount
+        elif kind == "expense":
+            spent[(day.year, day.month)] += amount
 
     result = []
     for back in range(months - 1, -1, -1):
@@ -145,7 +148,10 @@ def date_range_trend(user_id, start_date, end_date):
 
     income, spent = defaultdict(Decimal), defaultdict(Decimal)
     for day, kind, amount in found:
-        (income if kind == "income" else spent)[(day.year, day.month)] += amount
+        if kind == "income":
+            income[(day.year, day.month)] += amount
+        elif kind == "expense":
+            spent[(day.year, day.month)] += amount
 
     result = []
     for offset in range(month_count):

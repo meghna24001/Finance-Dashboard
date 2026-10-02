@@ -24,8 +24,10 @@ def month_key():
 
 def show_index(form):
     year, month = parse_month(request.args.get("month"))
+    month_start = date(year, month, 1)
     items = month_transactions(current_user.id, year, month)
-    rows = budget_rows(current_user.budgets, items)
+    budgets_for_month = Budget.query.filter_by(user_id=current_user.id, month=month_start).all()
+    rows = budget_rows(budgets_for_month, items)
 
     now = today()
     prev_year, prev_month = shift_month(year, month, -1)
@@ -36,7 +38,7 @@ def show_index(form):
         "budgets/index.html",
         form=form,
         rows=rows,
-        summary=budget_summary(rows, items, current_user.budgets),
+        summary=budget_summary(rows, items, budgets_for_month),
         can_add=bool(form.category_id.choices),
         month_label=date(year, month, 1).strftime("%B %Y"),
         month_key=f"{year}-{month:02d}",
@@ -49,16 +51,24 @@ def show_index(form):
 @budgets.route("")
 @login_required
 def index():
-    return show_index(NewBudgetForm())
+    year, month = parse_month(request.args.get("month"))
+    return show_index(NewBudgetForm(month=date(year, month, 1)))
 
 
 @budgets.route("/new", methods=["POST"])
 @login_required
 def create():
-    form = NewBudgetForm()
+    year, month = parse_month(request.args.get("month"))
+    selected_month = date(year, month, 1)
+    form = NewBudgetForm(month=selected_month)
     if form.validate_on_submit():
         db.session.add(
-            Budget(user_id=current_user.id, category_id=form.category_id.data, amount=form.amount.data)
+            Budget(
+                user_id=current_user.id,
+                category_id=form.category_id.data,
+                amount=form.amount.data,
+                month=selected_month,
+            )
         )
         try:
             db.session.commit()

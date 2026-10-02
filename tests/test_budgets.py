@@ -44,7 +44,11 @@ def budgets_of(email):
 def budget_id(email, category):
     with app.app_context():
         user = User.query.filter_by(email=email).one()
-        return Budget.query.filter_by(user_id=user.id, category_id=cat(email, category)).one().id
+        return Budget.query.filter_by(
+            user_id=user.id,
+            category_id=cat(email, category),
+            month=date(NOW.year, NOW.month, 1),
+        ).one().id
 
 
 def add_budget(client, email, category, amount, url="/budgets/new"):
@@ -131,7 +135,12 @@ spend(A, "Food", 400, when=month_day(1))
 spend(A, "Salary", 5000, kind="income")
 check("Last month's spending doesn't count towards this month", food_card()[2] == "$525.50 of $500.00")
 old = text(asha.get(f"/budgets?month={month_day(1).strftime('%Y-%m')}"))
-check("Last month shows last month's spending against the same limit", cards(old) == [("Food", "On track", "$400.00 of $500.00", "$100.00 left", 80)] or cards(old)[0][2] == "$400.00 of $500.00")
+check("Last month does not inherit this month's budget", not cards(old) and "No budgets yet" in old)
+last_month_key = month_day(1).strftime("%Y-%m")
+add_budget(asha, A, "Food", "250", url=f"/budgets/new?month={last_month_key}")
+old = text(asha.get(f"/budgets?month={last_month_key}"))
+check("A separate last-month limit is applied only to last month's spending", cards(old)[0][2] == "$400.00 of $250.00")
+check("The current month's limit is unchanged", food_card()[2] == "$525.50 of $500.00")
 check("Income never counts as spending", "5,000" not in text(asha.get("/budgets")))
 check("A nonsense month falls back to this month", cards(text(asha.get("/budgets?month=banana")))[0][2] == "$525.50 of $500.00")
 

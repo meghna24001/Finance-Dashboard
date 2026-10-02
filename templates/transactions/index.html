@@ -8,13 +8,67 @@
 <div class="actions">
   <a class="button button--inline" href="{{ url_for('transactions.new', kind='expense') }}">Add expense</a>
   <a class="button button--inline" href="{{ url_for('transactions.new', kind='income') }}">Add income</a>
+  <a class="button button--inline" href="{{ url_for('transactions.transfer') }}">Transfer</a>
   <a class="button button--inline" href="{{ url_for('transactions.import_statement') }}">Import statement</a>
 </div>
 
 <div data-pending-list></div>
 
+<section class="panel transaction-filters">
+  <form method="get" action="{{ url_for('transactions.index') }}">
+    {% if not date_filtered %}<input type="hidden" name="month" value="{{ month_key }}">{% endif %}
+    <label class="field">
+      <span class="field__label">Search</span>
+      <input class="field__input" type="search" name="q" value="{{ filters.q }}" placeholder="Description or merchant">
+    </label>
+    <div class="field-row">
+      <label class="field">
+        <span class="field__label">From</span>
+        <input class="field__input" type="date" name="start" value="{{ filters.start }}">
+      </label>
+      <label class="field">
+        <span class="field__label">To</span>
+        <input class="field__input" type="date" name="end" value="{{ filters.end }}">
+      </label>
+    </div>
+    <div class="field-row">
+      <label class="field">
+        <span class="field__label">Account</span>
+        <select class="field__input" name="account">
+          <option value="">All accounts</option>
+          {% for account in accounts %}
+          <option value="{{ account.id }}"{% if filters.account|string == account.id|string %} selected{% endif %}>{{ account.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="field__label">Category</span>
+        <select class="field__input" name="category">
+          <option value="">All categories</option>
+          {% for category in categories %}
+          <option value="{{ category.id }}"{% if filters.category|string == category.id|string %} selected{% endif %}>{{ category.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <label class="field">
+      <span class="field__label">Transaction type</span>
+      <select class="field__input" name="kind">
+        <option value="">Income, expense, and transfer</option>
+        <option value="income"{% if filters.kind == 'income' %} selected{% endif %}>Income</option>
+        <option value="expense"{% if filters.kind == 'expense' %} selected{% endif %}>Expense</option>
+        <option value="transfer"{% if filters.kind == 'transfer' %} selected{% endif %}>Transfer</option>
+      </select>
+    </label>
+    <div class="actions">
+      <button type="submit" class="button button--inline">Apply filters</button>
+      <a class="button button--inline" href="{{ url_for('transactions.index', month=month_key) }}">Clear</a>
+    </div>
+  </form>
+</section>
+
 {% set endpoint = 'transactions.index' %}
-{% include "_month_switch.html" %}
+{% if not date_filtered %}{% include "_month_switch.html" %}{% endif %}
 
 {% include "transactions/_summary.html" %}
 

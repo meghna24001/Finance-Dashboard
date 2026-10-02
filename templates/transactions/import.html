@@ -9,7 +9,7 @@
 {% if not rows %}
 <section class="panel">
   <h2 class="panel__title">Choose a statement</h2>
-  <p class="muted import-help">Files are parsed on this device and are not sent to a paid service. Supported formats: text-based PDF, XLS, and XLSX. Common international date, details, debit/credit, amount, and account-number headings are detected; review the preview before saving. Scanned image-only PDFs are not supported.</p>
+  <p class="muted import-help">The original PDF or spreadsheet is parsed in memory and is never saved. Parsed rows are held temporarily so you can review them before saving. Supported formats: text-based PDF, XLS, and XLSX. Scanned image-only PDFs are not supported.</p>
   <form method="post" enctype="multipart/form-data" class="import-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label class="field">
@@ -29,7 +29,7 @@
 {% else %}
 <section class="panel">
   <h2 class="panel__title">Review {{ rows|length }} row(s)</h2>
-  <p class="muted import-help">Uncheck rows you do not want to save. Duplicate rows are shown for review and will be skipped safely.</p>
+  <p class="muted import-help">Review suggested matches before saving. Select a row to import it, or choose Reconcile to mark its matching recorded transaction as reconciled.</p>
   {% if rows[0].account_number %}
   <p class="muted import-help">Statement account number: <strong>{{ rows[0].account_number }}</strong></p>
   {% endif %}
@@ -37,14 +37,18 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="table-wrap">
       <table class="table import-table">
-        <thead><tr><th><input type="checkbox" data-import-select-all checked aria-label="Select all rows"></th><th>Date</th><th>Type</th><th>Details</th><th>Amount</th><th>Category</th><th>Account</th></tr></thead>
+        <thead><tr><th><input type="checkbox" data-import-select-all checked aria-label="Select all rows"> Import</th><th>Reconcile</th><th>Date</th><th>Type</th><th>Details / suggested match</th><th>Amount</th><th>Category</th><th>Account</th></tr></thead>
         <tbody>
         {% for row in rows %}
-          <tr{% if row.duplicate %} class="import-row--duplicate"{% endif %}>
-            <td><input type="checkbox" name="selected" value="{{ loop.index0 }}" data-import-row{% if not row.duplicate %} checked{% endif %}></td>
+          <tr{% if row.duplicate %} class="import-row--duplicate"{% elif row.match %} class="import-row--match"{% endif %}>
+            <td><input type="checkbox" name="selected" value="{{ loop.index0 }}" data-import-row{% if not row.duplicate and not row.match %} checked{% endif %} aria-label="Import row {{ loop.index }}"></td>
+            <td>{% if row.match %}<label class="import-reconcile"><input type="checkbox" name="reconcile" value="{{ loop.index0 }}"> Reconcile</label>{% else %}—{% endif %}</td>
             <td>{{ row.date }}</td>
             <td>{{ row.type|capitalize }}</td>
-            <td title="{{ row.description }}">{{ row.description or '—' }}{% if row.duplicate %}<span class="import-duplicate">Duplicate</span>{% endif %}</td>
+            <td title="{{ row.description }}">{{ row.description or '—' }}
+              {% if row.duplicate %}<span class="import-duplicate">Likely duplicate</span>{% endif %}
+              {% if row.match %}<span class="import-match">Match: {{ row.match.date }} · {{ row.match.description }} ({{ row.match.confidence }}% description match){% if row.match.reconciled %} · already reconciled{% endif %}</span>{% endif %}
+            </td>
             <td>{{ row.amount }}</td>
             <td>
               <select name="category_{{ loop.index0 }}">
@@ -67,7 +71,10 @@
     </div>
     <div class="actions">
       <button type="submit" class="button button--inline">Save selected transactions</button>
-      <a class="button button--inline" href="{{ url_for('transactions.import_statement') }}">Start over</a>
+      <form method="post" action="{{ url_for('transactions.discard_import', batch_id=batch.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="button button--inline">Discard preview</button>
+      </form>
     </div>
   </form>
 </section>

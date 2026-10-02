@@ -4,13 +4,15 @@
 <li>
   <div class="txn">
     <a class="txn__left" href="{{ url_for('transactions.edit', transaction_id=t.id) }}" style="text-decoration:none; color:inherit;">
-      <span class="txn__icon {% if t.type == 'income' %}txn__icon--income{% else %}txn__icon--expense{% endif %}" aria-hidden="true">
-        {% if t.type == 'income' %}💰{% elif mode == 'upi' %}📱{% elif mode == 'card' %}💳{% elif mode == 'bank_transfer' %}🏦{% else %}💸{% endif %}
+      <span class="txn__icon {% if t.type == 'income' %}txn__icon--income{% elif t.type == 'transfer' %}txn__icon--transfer{% else %}txn__icon--expense{% endif %}" aria-hidden="true">
+        {% if t.type == 'income' %}💰{% elif t.type == 'transfer' %}↔{% elif mode == 'upi' %}📱{% elif mode == 'card' %}💳{% elif mode == 'bank_transfer' %}🏦{% else %}💸{% endif %}
       </span>
       <span class="txn__main">
         <span class="txn__title" title="{{ t.description or category_name }}">{{ t.description or category_name }}</span>
         <span class="txn__meta">
-          {% if t.description %}<span>{{ category_name }}</span> · {% endif %}
+          {% if t.type == 'transfer' %}
+          <span>{{ t.bank_account.name if t.bank_account else 'Account' }} → {{ t.transfer_to_account.name if t.transfer_to_account else 'Account' }}</span> ·
+          {% elif t.description %}<span>{{ category_name }}</span> · {% endif %}
           {% if show_date %}<span>{{ t.date.strftime("%d %b") }}</span> · {% endif %}
           <span class="mode-badge">
             {% if mode == 'upi' %}📱 UPI{% elif mode == 'card' %}💳 Card{% elif mode == 'bank_transfer' %}🏦 Bank{% elif mode == 'net_banking' %}🌐 NetBanking{% elif mode == 'cheque' %}📜 Cheque{% else %}💵 Cash{% endif %}
@@ -21,13 +23,14 @@
           {% if t.receipt_path %}
           <span title="Receipt scanned">🧾</span>
           {% endif %}
+          {% if t.reconciled %}<span class="reconciled-badge">Reconciled</span>{% endif %}
         </span>
       </span>
     </a>
 
     <div class="txn__right">
-      <span class="txn__amount {% if t.type == 'income' %}txn__amount--income{% else %}txn__amount--expense{% endif %}">
-        {{ '+' if t.type == 'income' else '−' }}{{ t.amount|money }}
+      <span class="txn__amount {% if t.type == 'income' %}txn__amount--income{% elif t.type == 'transfer' %}txn__amount--transfer{% else %}txn__amount--expense{% endif %}">
+        {{ '+' if t.type == 'income' else '↔ ' if t.type == 'transfer' else '−' }}{{ t.amount|money }}
       </span>
 
       <div class="txn__actions">

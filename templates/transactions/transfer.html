@@ -1,0 +1,32 @@
+{% extends "app_base.html" %}
+{% from "_macros.html" import field %}
+
+{% set editing = item is not none %}
+{% block title %}{{ 'Edit' if editing else 'Transfer' }} | {{ app_name }}{% endblock %}
+{% block page_class %} page--narrow{% endblock %}
+
+{% block content %}
+<h1 class="page__title">{{ 'Edit transfer' if editing else 'Transfer between accounts' }}</h1>
+<p class="muted lead">Transfers between your own accounts are excluded from income and spending totals.</p>
+<section class="panel">
+  {% if accounts|length < 2 %}
+  <p class="muted">Add at least two active accounts before recording a transfer.</p>
+  <a class="button button--inline" href="{{ url_for('bank_accounts.index') }}">Manage accounts</a>
+  {% else %}
+  <form method="post" action="{{ url_for('transactions.edit', transaction_id=item.id) if editing else url_for('transactions.transfer') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {{ field(form.amount, label_text="Amount (" ~ current_user.currency ~ ")", type="number", step="0.01", min="0.01", inputmode="decimal") }}
+    <div class="field-row">
+      {{ field(form.from_account_id) }}
+      {{ field(form.to_account_id) }}
+    </div>
+    {{ field(form.date, type="date") }}
+    {{ field(form.description, maxlength="200", placeholder="Optional transfer note") }}
+    <div class="actions">
+      <button type="submit" class="button button--inline">{{ 'Save changes' if editing else 'Record transfer' }}</button>
+      <a class="button button--inline" href="{{ url_for('transactions.index') }}">Cancel</a>
+    </div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

@@ -86,7 +86,9 @@ class BankAccount(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    transactions = db.relationship("Transaction", backref="bank_account")
+    transactions = db.relationship(
+        "Transaction", backref="bank_account", foreign_keys="Transaction.account_id"
+    )
 
     def __repr__(self):
         return f"<BankAccount {self.name}>"
@@ -114,7 +116,7 @@ class Category(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     transactions = db.relationship("Transaction", backref="category")
-    budget = db.relationship("Budget", backref="category", uselist=False, cascade="all, delete-orphan")
+    budgets = db.relationship("Budget", backref="category", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Category {self.name}>"
@@ -133,13 +135,14 @@ PAYMENT_MODES = [
 
 
 class Transaction(db.Model):
-    """One row per income or expense entry."""
+    """One income, expense, or account-to-account transfer entry."""
 
     __table_args__ = (
-        db.CheckConstraint("type IN ('income', 'expense')", name="ck_transaction_type"),
+        db.CheckConstraint("type IN ('income', 'expense', 'transfer')", name="ck_transaction_type"),
         db.CheckConstraint("amount > 0", name="ck_transaction_amount_positive"),
         db.Index("ix_transaction_user_date", "user_id", "date"),
         db.UniqueConstraint("user_id", "source_fingerprint", name="uq_transaction_user_source_fingerprint"),
+        db.UniqueConstraint("recurring_id", "recurring_due_date", name="uq_transaction_recurring_due"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
@@ -153,8 +156,19 @@ class Transaction(db.Model):
     payment_mode = db.Column(db.String(20), default="cash", nullable=False)
     upi_id = db.Column(db.String(80), nullable=True)           # e.g. "user@paytm"
     account_id = db.Column(db.Integer, db.ForeignKey("bank_account.id"), nullable=True)
+    transfer_to_account_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            "bank_account.id",
+            name="fk_transaction_transfer_to_account_id_bank_account",
+        ),
+        nullable=True,
+    )
     receipt_path = db.Column(db.String(255), nullable=True)    # path to scanned receipt image
     recurring_id = db.Column(db.Integer, db.ForeignKey("recurring_transaction.id"), nullable=True)
+    recurring_due_date = db.Column(db.Date, nullable=True)
+    reconciled = db.Column(db.Boolean, default=False, nullable=False)
+    transfer_to_account = db.relationship("BankAccount", foreign_keys=[transfer_to_account_id])
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"))
@@ -190,12 +204,13 @@ class Budget(db.Model):
     """A monthly spending limit for one expense category."""
 
     __table_args__ = (
-        db.UniqueConstraint("user_id", "category_id", name="uq_budget_user_category"),
+        db.UniqueConstraint("user_id", "category_id", "month", name="uq_budget_user_category_month"),
         db.CheckConstraint("amount > 0", name="ck_budget_amount_positive"),
     )
 
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Numeric(10, 2), nullable=False)
+    month = db.Column(db.Date, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)

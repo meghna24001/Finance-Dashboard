@@ -6,6 +6,7 @@ from datetime import date, timedelta
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy.exc import IntegrityError
 
 from extensions import db
 from forms import RecurringForm
@@ -52,11 +53,19 @@ def next_due_after(current_due: date, frequency: str) -> date:
 @recurring_bp.route("")
 @login_required
 def index():
+    today_date = date.today()
     rules = RecurringTransaction.query.filter_by(user_id=current_user.id).order_by(
         RecurringTransaction.next_due
     ).all()
     form = RecurringForm()
-    return render_template("recurring/index.html", rules=rules, form=form, freq_labels=FREQ_LABELS)
+    return render_template(
+        "recurring/index.html",
+        rules=rules,
+        form=form,
+        freq_labels=FREQ_LABELS,
+        today=today_date,
+        reminder_cutoff=today_date + timedelta(days=7),
+    )
 
 
 @recurring_bp.route("/new", methods=["GET", "POST"])
@@ -142,7 +151,15 @@ def run_due():
     ).all()
 
     created = 0
+    already_generated = 0
     for rule in due_rules:
+        if Transaction.query.filter_by(
+            recurring_id=rule.id,
+            recurring_due_date=rule.next_due,
+        ).first():
+            rule.next_due = next_due_after(rule.next_due, rule.frequency)
+            already_generated += 1
+            continue
         txn = Transaction(
             user_id=current_user.id,
             type=rule.type,
@@ -153,14 +170,22 @@ def run_due():
             description=rule.name,
             date=rule.next_due,
             recurring_id=rule.id,
+            recurring_due_date=rule.next_due,
         )
         db.session.add(txn)
         rule.next_due = next_due_after(rule.next_due, rule.frequency)
         created += 1
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        flash("A scheduled item was processed at the same time by another request. Please refresh and try again.", "error")
+        return redirect(url_for("recurring.index"))
     if created:
         flash(f"{created} recurring transaction{'s' if created > 1 else ''} added.", "success")
+    elif already_generated:
+        flash("Already-generated scheduled items were skipped.", "info")
     else:
         flash("No transactions due right now.", "info")
     return redirect(url_for("recurring.index"))

@@ -8,7 +8,7 @@ from app import create_app
 from config import TestConfig
 from finance import today
 from tests.helpers import check, finish, flash_text, post, signup, text, token
-from models import Category, Transaction, User, db
+from models import BankAccount, Category, Transaction, User, db
 
 app = create_app(TestConfig)
 NEW_EXPENSE, NEW_INCOME = "/transactions/new/expense", "/transactions/new/income"
@@ -134,6 +134,28 @@ check("Current month has a Previous link and no Next link", "Previous month" in 
 check("Older months have a Next link", "Next month" in text(asha.get(f"/transactions?month={month}")))
 check("A nonsense month falls back to the current month", "Lunch" in text(asha.get("/transactions?month=garbage")))
 check("Adding an old transaction takes you to its month", "Old lunch" in text(add_expense(asha, E, "1", "Food", when=old_day, note="Old two")))
+
+# ---- account transfers
+with app.app_context():
+    user = User.query.filter_by(email=E).one()
+    source = BankAccount(user_id=user.id, name="Checking", account_type="savings", color="#6366f1")
+    destination = BankAccount(user_id=user.id, name="Wallet", account_type="wallet", color="#10b981")
+    db.session.add_all([source, destination])
+    db.session.commit()
+    source_id, destination_id = source.id, destination.id
+
+transfer = post(asha, "/transactions/transfer", {
+    "amount": "125.50",
+    "from_account_id": source_id,
+    "to_account_id": destination_id,
+    "date": today().isoformat(),
+    "description": "Move to wallet",
+})
+with app.app_context():
+    transfer_row = Transaction.query.filter_by(user_id=User.query.filter_by(email=E).one().id, type="transfer").one()
+    check("Transfers store both owned accounts as one transfer entry", transfer_row.account_id == source_id and transfer_row.transfer_to_account_id == destination_id)
+    check("Transfers are omitted from income and expense totals", "$125.50" not in text(asha.get("/transactions?kind=income")) and "$125.50" not in text(asha.get("/transactions?kind=expense")))
+check("Transfers can be filtered by account and description", "Move to wallet" in text(asha.get(f"/transactions?kind=transfer&account={source_id}&q=wallet&start={today().isoformat()}&end={today().isoformat()}")))
 
 # ---- newest day first
 d1, d2 = today() - timedelta(days=2), today() - timedelta(days=1)

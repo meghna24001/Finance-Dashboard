@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from extensions import db
 from forms import BankAccountForm
-from models import BankAccount, ACCOUNT_COLORS
+from models import BankAccount, ACCOUNT_COLORS, Transaction
 
 accounts_bp = Blueprint("bank_accounts", __name__, url_prefix="/accounts")
 
@@ -69,9 +69,13 @@ def edit(account_id):
 @login_required
 def delete(account_id):
     acct = own_account_or_404(account_id)
-    # Detach transactions (set account_id to NULL) instead of blocking delete
+    # Preserve historical entries while detaching both sides of any transfer.
     for txn in acct.transactions:
         txn.account_id = None
+    for txn in Transaction.query.filter_by(
+        user_id=current_user.id, transfer_to_account_id=acct.id
+    ).all():
+        txn.transfer_to_account_id = None
     db.session.delete(acct)
     db.session.commit()
     flash("Account removed. Transactions are unaffected.", "success")
