@@ -25,6 +25,8 @@ def upgrade():
     budgets = connection.execute(sa.text("SELECT id, created_at FROM budget")).fetchall()
     for budget_id, created_at in budgets:
         created = created_at or datetime.now(timezone.utc)
+        if isinstance(created, str):
+            created = datetime.fromisoformat(created)
         connection.execute(
             sa.text("UPDATE budget SET month = :month WHERE id = :id"),
             {"month": date(created.year, created.month, 1), "id": budget_id},
@@ -52,7 +54,6 @@ def upgrade():
             ["transfer_to_account_id"],
             ["id"],
         )
-        batch_op.alter_column("reconciled", server_default=None)
 
     generated = connection.execute(
         sa.text(
