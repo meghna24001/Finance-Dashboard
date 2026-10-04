@@ -94,9 +94,9 @@
         .catch(function (error) {
           stopCamera();
           var message = error && error.name === "NotAllowedError"
-            ? "Camera permission was denied"
+            ? "Camera access is unavailable. Check the camera permission for this app or browser and try again"
             : "The camera could not be opened";
-          showStatus('<span style="color:var(--danger)">' + message + '. Please use Browse files.</span>');
+          showStatus('<span style="color:var(--danger)">' + message + '. You can also use Browse files.</span>');
         });
     }
 

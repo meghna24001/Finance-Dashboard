@@ -123,7 +123,7 @@ def create_app(config_class=None):
         headers.setdefault("X-Content-Type-Options", "nosniff")
         headers.setdefault("X-Frame-Options", "DENY")  # nobody can show this app inside their own page
         headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-        headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+        headers.setdefault("Permissions-Policy", "camera=(self), microphone=(), geolocation=(), payment=()")
         headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         if app.config["SEND_HSTS"]:
             headers.setdefault("Strict-Transport-Security", "max-age=31536000")

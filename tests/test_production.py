@@ -94,7 +94,7 @@ check("...and Asha's name was not changed", "Hello, Asha" in text(client.get("/d
 dev = create_app(TestConfig).test_client()
 for label, response in [("a page", dev.get("/login")), ("a static file", dev.get("/static/css/style.css")), ("the API", dev.get("/api/ping")), ("the health check", dev.get("/healthz"))]:
     h = response.headers
-    check(f"Security headers are on {label}", h["X-Content-Type-Options"] == "nosniff" and h["X-Frame-Options"] == "DENY" and h["Referrer-Policy"] == "strict-origin-when-cross-origin" and "camera=()" in h["Permissions-Policy"] and h["Cross-Origin-Opener-Policy"] == "same-origin")
+    check(f"Security headers are on {label}", h["X-Content-Type-Options"] == "nosniff" and h["X-Frame-Options"] == "DENY" and h["Referrer-Policy"] == "strict-origin-when-cross-origin" and "camera=(self)" in h["Permissions-Policy"] and "microphone=()" in h["Permissions-Policy"] and h["Cross-Origin-Opener-Policy"] == "same-origin")
 check("Local settings don't send HSTS (it would lock you into https on localhost)", "Strict-Transport-Security" not in dev.get("/login").headers)
 check("Pages are still 'no-store', and the service worker still 'no-cache'", dev.get("/login").headers["Cache-Control"] == "no-store" and dev.get("/sw.js").headers["Cache-Control"] == "no-cache")
 
